@@ -5,12 +5,12 @@ import { useRef, useState, useCallback } from "react";
 
 import { motion } from "framer-motion";
 
-import firebase, { uploadUrl } from "./firebase/index";
+import { uploadUrl, uploadImage } from "./firebase/index";
 
 import { getChatGPTResponse } from "./services/chatgpt";
 
 import ImagePreview from "./components/ImagePreview";
-import VCardPreview from "./components/VCardPreview";
+import ContactPreview from "./components/ContactPreview";
 import UploadingScreen from "./components/UploadingScreen";
 
 import options from "./config/options";
@@ -18,7 +18,7 @@ import options from "./config/options";
 const App = () => {
   const webcamRef = useRef(null);
   const [imgSrc, setImgSrc] = useState(null);
-  const [vCard, setVCard] = useState("");
+  const [contactData, setContactData] = useState({});
   const [screen, setScreen] = useState("scan");
   const [status, setStatus] = useState("");
   const [mirrored, setMirrored] = useState(false);
@@ -32,7 +32,7 @@ const App = () => {
   const onRetake = () => {
     setScreen("scan");
     setImgSrc(null);
-    setVCard("");
+    setContactData({});
   };
 
   const parseCardText = async (text) => {
@@ -44,18 +44,7 @@ const App = () => {
 
   const onUploadImage = async () => {
     setScreen("uploading");
-    const imageRef = await firebase
-      .storage()
-      .ref()
-      .child(`images/${Date.now()}.png`);
-
-    const snapshot = await imageRef.putString(imgSrc, "data_url");
-
-    const url = await firebase
-      .storage()
-      .ref(snapshot.ref.fullPath)
-      .getDownloadURL();
-
+    const url = await uploadImage(imgSrc);
     scanImage(url);
   };
 
@@ -64,8 +53,8 @@ const App = () => {
       url,
       async (text) => {
         const response = await parseCardText(text);
-        setVCard(response);
-        setScreen("vcard");
+        setContactData(JSON.parse(response) || {});
+        setScreen("contact");
       },
       (error) => {
         setStatus(error);
@@ -145,17 +134,20 @@ const App = () => {
               <UploadingScreen />
             </motion.div>
           )}
-          {screen === "vcard" && (
+          {screen === "contact" && (
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={
-                screen === "vcard"
+                screen === "contact"
                   ? { scale: 1, opacity: 1 }
                   : { scale: 0.8, opacity: 0 }
               }
               transition={{ duration: 1 }}
             >
-              <VCardPreview vCard={vCard} onStartAgain={onRetake} />
+              <ContactPreview
+                contactData={contactData}
+                onStartAgain={onRetake}
+              />
             </motion.div>
           )}
         </div>

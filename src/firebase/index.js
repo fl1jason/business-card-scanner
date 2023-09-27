@@ -7,6 +7,43 @@ import firebaseConfig from "../config/firebase";
 
 firebase.initializeApp(firebaseConfig);
 
+export const uploadImage = async (imgSrc) => {
+  const imageRef = await firebase
+    .storage()
+    .ref()
+    .child(`images/${Date.now()}.png`);
+
+  const snapshot = await imageRef.putString(imgSrc, "data_url");
+
+  const url = await firebase
+    .storage()
+    .ref(snapshot.ref.fullPath)
+    .getDownloadURL();
+
+  return url;
+};
+
+export const uploadvCard = async (contactName, data) => {
+  // remove any spaces or special characters from the contact name
+  contactName = contactName.replace(/[^a-zA-Z0-9]/g, "");
+
+  const blob = new Blob([data], { type: "text/vcard" });
+
+  const contactRef = await firebase
+    .storage()
+    .ref()
+    .child(`vcards/${contactName}.vcf`);
+
+  const snapshot = await contactRef.put(blob);
+
+  const url = await firebase
+    .storage()
+    .ref(snapshot.ref.fullPath)
+    .getDownloadURL();
+
+  return url;
+};
+
 export const uploadUrl = async (url, onSuccess, onError) => {
   try {
     let body = JSON.stringify({

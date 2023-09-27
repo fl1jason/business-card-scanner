@@ -1,6 +1,6 @@
-const CHATGPT_PROMPT_TEXT = `Parse the following text and return a vCard: `;
-const CHATGPT_API_KEY = "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";
-const CHATGPT_MAX_TOKENS = 50;
+const CHATGPT_PROMPT_TEXT = process.env.REACT_APP_CHATGPT_PROMPT_TEXT;
+const CHATGPT_API_KEY = process.env.REACT_APP_CHATGPT_API_KEY;
+const CHATGPT_MAX_TOKENS = process.env.REACT_APP_CHATGPT_MAX_TOKENS;
 
 export default {
   CHATGPT_PROMPT_TEXT,
